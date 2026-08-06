@@ -1,0 +1,12 @@
+export const extractYoutubeVideoId = (url: string): string => {
+  const regex =
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&?/]+)/;
+
+  const match = url.match(regex);
+
+  if (!match) {
+    throw new Error("Invalid YouTube URL");
+  }
+
+  return match[1];
+};
