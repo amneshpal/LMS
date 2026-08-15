@@ -262,3 +262,135 @@ export const getCompletedCourses = async (
   return completedCourses;
 
 };
+
+
+export const getDashboard = async (studentId: string) => {
+  // Total enrolled courses
+  const totalCourses = await prisma.enrollment.count({
+    where: {
+      studentId,
+    },
+  });
+
+  // Total certificates
+  const certificates = await prisma.certificate.count({
+    where: {
+      studentId,
+    },
+  });
+
+  // Student enrollments with course lessons
+  const enrollments = await prisma.enrollment.findMany({
+    where: {
+      studentId,
+    },
+    include: {
+      course: {
+        include: {
+          sections: {
+            include: {
+              lessons: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      enrolledAt: "desc",
+    },
+  });
+
+  let completedCourses = 0;
+  let inProgressCourses = 0;
+
+  for (const enrollment of enrollments) {
+    const lessonIds =
+      enrollment.course.sections.flatMap((section) =>
+        section.lessons.map((lesson) => lesson.id)
+      );
+
+    // Course without lessons
+    if (lessonIds.length === 0) {
+      continue;
+    }
+
+    const completedLessons =
+      await prisma.lessonProgress.count({
+        where: {
+          studentId,
+          lessonId: {
+            in: lessonIds,
+          },
+          completed: true,
+        },
+      });
+
+    if (completedLessons === lessonIds.length) {
+      completedCourses++;
+    } else if (completedLessons > 0) {
+      inProgressCourses++;
+    }
+  }
+
+  // Continue learning
+  const continueLearning =
+    await prisma.lessonProgress.findMany({
+      where: {
+        studentId,
+        watchedSeconds: {
+          gt: 0,
+        },
+        completed: false,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      take: 5,
+      include: {
+        lesson: {
+          include: {
+            section: {
+              include: {
+                course: {
+                  select: {
+                    id: true,
+                    title: true,
+                    slug: true,
+                    thumbnail: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+  // Recent courses
+  const recentCourses = enrollments
+    .slice(0, 5)
+    .map((enrollment) => ({
+      id: enrollment.course.id,
+      title: enrollment.course.title,
+      slug: enrollment.course.slug,
+      thumbnail: enrollment.course.thumbnail,
+      enrolledAt: enrollment.enrolledAt,
+    }));
+
+  return {
+    stats: {
+      totalCourses,
+      inProgressCourses,
+      completedCourses,
+      certificates,
+    },
+
+    continueLearning,
+
+    recentCourses,
+  };
+};

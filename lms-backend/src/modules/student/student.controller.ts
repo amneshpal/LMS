@@ -8,6 +8,28 @@ interface AuthenticatedRequest extends Request {
     };
 }
 
+
+export const getDashboard = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const data = await studentService.getDashboard(
+      req.user.id
+    );
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export const getMyCourses = async (
 
     req: AuthenticatedRequest,

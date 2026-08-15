@@ -8,17 +8,31 @@ import { authorize } from "../../middlewares/role.middleware";
 
 const router = Router();
 
+/* =========================
+   STUDENT DASHBOARD
+========================= */
+
 router.get(
-
-    "/my-courses",
-
-    authenticate,
-
-    authorize("STUDENT"),
-
-    studentController.getMyCourses as unknown as RequestHandler
-
+  "/dashboard",
+  authenticate,
+  authorize("STUDENT"),
+  studentController.getDashboard as unknown as RequestHandler
 );
+
+/* =========================
+   MY COURSES
+========================= */
+
+router.get(
+  "/my-courses",
+  authenticate,
+  authorize("STUDENT"),
+  studentController.getMyCourses as unknown as RequestHandler
+);
+
+/* =========================
+   MY COURSE DETAILS
+========================= */
 
 router.get(
   "/my-course/:courseId",
@@ -27,7 +41,9 @@ router.get(
   studentController.getMyCourse as unknown as RequestHandler
 );
 
-
+/* =========================
+   COURSE PROGRESS
+========================= */
 
 router.get(
   "/course-progress/:courseId",
@@ -36,6 +52,9 @@ router.get(
   studentController.getCourseProgress as unknown as RequestHandler
 );
 
+/* =========================
+   CONTINUE LEARNING
+========================= */
 
 router.get(
   "/continue-learning",
@@ -44,10 +63,15 @@ router.get(
   studentController.getContinueLearning as unknown as RequestHandler
 );
 
+/* =========================
+   COMPLETED COURSES
+========================= */
+
 router.get(
   "/completed-courses",
   authenticate,
   authorize("STUDENT"),
   studentController.getCompletedCourses as unknown as RequestHandler
 );
+
 export default router;
