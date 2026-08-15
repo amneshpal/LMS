@@ -32,22 +32,26 @@ enum LessonType {
 }
 
 model User {
-  id           String           @id @default(cuid())
-  fullName     String
-  email        String           @unique
-  password     String
-  phone        String?          @unique
-  avatar       String?
-  role         Role             @default(STUDENT)
-  status       UserStatus       @default(ACTIVE)
-  isVerified   Boolean          @default(false)
-  reviews      Review[]
-  wishlists    Wishlist[]
-  certificates Certificate[]
-  payments     Payment[]
-  enrollments  Enrollment[]
-  progress     LessonProgress[]
-  attempts     QuizAttempt[]
+  id         String     @id @default(cuid())
+  fullName   String
+  email      String     @unique
+  password   String
+  phone      String?    @unique
+  avatar     String?
+  role       Role       @default(STUDENT)
+  status     UserStatus @default(ACTIVE)
+  isVerified Boolean    @default(false)
+
+  reviews               Review[]
+  wishlists             Wishlist[]
+  certificates          Certificate[]
+  payments              Payment[]
+  enrollments           Enrollment[]
+  progress              LessonProgress[]
+  attempts              QuizAttempt[]
+  assignmentSubmissions AssignmentSubmission[]
+
+  courses Course[] @relation("TeacherCourses")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -67,19 +71,24 @@ model Category {
 }
 
 model Course {
-  id           String        @id @default(cuid())
-  title        String
-  slug         String        @unique
-  description  String?
-  thumbnail    String?
-  price        Float
-  isPublished  Boolean       @default(false)
+  id          String  @id @default(cuid())
+  title       String
+  slug        String  @unique
+  description String?
+  thumbnail   String?
+  price       Float
+  isPublished Boolean @default(false)
+
+  teacherId String?
+  teacher   User?   @relation("TeacherCourses", fields: [teacherId], references: [id], onDelete: SetNull)
+
   reviews      Review[]
   wishlists    Wishlist[]
   payments     Payment[]
   certificates Certificate[]
-  categoryId   String
-  category     Category      @relation(fields: [categoryId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
   sections    Section[]
   enrollments Enrollment[]
@@ -130,7 +139,8 @@ model Lesson {
 
   duration Int?
 
-  isPreview Boolean @default(false)
+  assignments Assignment[]
+  isPreview   Boolean      @default(false)
 
   order Int
 
@@ -322,4 +332,46 @@ model Certificate {
   issuedAt DateTime @default(now())
 
   @@unique([studentId, courseId])
+}
+
+model Assignment {
+  id String @id @default(cuid())
+
+  title String
+
+  description String
+
+  dueDate DateTime?
+
+  maxMarks Int
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  submissions AssignmentSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AssignmentSubmission {
+  id String @id @default(cuid())
+
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  fileUrl String
+
+  remarks String?
+
+  marks Int?
+
+  feedback String?
+
+  submittedAt DateTime @default(now())
+
+  @@unique([assignmentId, studentId])
 }

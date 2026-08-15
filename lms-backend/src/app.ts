@@ -88,6 +88,13 @@ import paymentRoutes from "./modules/payment/payment.routes";
 import adminRoutes from "./modules/admin/admin.routes";
 import userManagementRoutes from "./modules/user-management/userManagement.routes";
 import certificateRoutes from "./modules/certificate/certificate.routes";
+import assignmentRoutes from "./modules/assignment/assignment.routes";
+import adminDashboardRoutes from "./modules/admin-dashboard/adminDashboard.routes";
+import teacherDashboardRoutes from "./modules/teacher-dashboard/teacherDashboard.routes";
+
+
+
+
 const app = express();
 
 
@@ -127,6 +134,20 @@ app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/admin", userManagementRoutes);
 app.use("/api/v1/certificates", certificateRoutes);
+app.use("/api/v1/assignments", assignmentRoutes); 
+
+
+
+app.use(
+  "/api/v1/admin/dashboard",
+  adminDashboardRoutes
+);
+
+app.use(
+  "/api/v1/teacher/dashboard",
+  teacherDashboardRoutes
+);
+
 app.get("/", (req, res) => {
   res.json({
     success: true,

@@ -1,75 +1,234 @@
-import { Request, Response } from "express";
-import * as courseService from "./course.service";
+// import { Request, Response } from "express";
+// import * as courseService from "./course.service";
 
-export const createCourse = async (req: Request, res: Response) => {
-  try {
-    const course = await courseService.createCourse(req.body);
-
-    res.status(201).json({
-      success: true,
-      message: "Course created successfully",
-      data: course,
-    });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// export const getAllCourses = async (
-//   req: Request,
-//   res: Response
-// ) => {
+// export const createCourse = async (req: Request, res: Response) => {
 //   try {
-//     const courses = await courseService.getAllCourses();
+//     const course = await courseService.createCourse(req.body);
 
-//     res.status(200).json({
+//     res.status(201).json({
 //       success: true,
-//       data: courses,
+//       message: "Course created successfully",
+//       data: course,
 //     });
 //   } catch (error: any) {
-//     res.status(500).json({
+//     res.status(400).json({
 //       success: false,
 //       message: error.message,
 //     });
 //   }
 // };
 
+// // export const getAllCourses = async (
+// //   req: Request,
+// //   res: Response
+// // ) => {
+// //   try {
+// //     const courses = await courseService.getAllCourses();
+
+// //     res.status(200).json({
+// //       success: true,
+// //       data: courses,
+// //     });
+// //   } catch (error: any) {
+// //     res.status(500).json({
+// //       success: false,
+// //       message: error.message,
+// //     });
+// //   }
+// // };
+
+// export const getAllCourses = async (
+//   req: Request,
+//   res: Response
+// ) => {
+
+//   try {
+
+//     const result =
+//       await courseService.getAllCourses(
+//         req.query
+//       );
+
+//     res.status(200).json({
+
+//       success: true,
+
+//       ...result,
+
+//     });
+
+//   } catch (error: any) {
+
+//     res.status(500).json({
+
+//       success: false,
+
+//       message: error.message,
+
+//     });
+
+//   }
+
+// };
+// export const getCourseBySlug = async (
+//   req: Request,
+//   res: Response
+// ) => {
+//   try {
+//     const slug = req.params.slug as string;
+
+//     const course = await courseService.getCourseBySlug(slug);
+
+//     res.status(200).json({
+//       success: true,
+//       data: course,
+//     });
+//   } catch (error: any) {
+//     res.status(404).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+// export const updateCourse = async (
+//   req: Request,
+//   res: Response
+// ) => {
+//   try {
+//     const id = req.params.id as string;
+
+//     const course = await courseService.updateCourse(
+//       id,
+//       req.body
+//     );
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Course updated successfully",
+//       data: course,
+//     });
+//   } catch (error: any) {
+//     res.status(400).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+// export const deleteCourse = async (
+//   req: Request,
+//   res: Response
+// ) => {
+//   try {
+//     const id = req.params.id as string;
+
+//     const result = await courseService.deleteCourse(id);
+
+//     res.status(200).json(result);
+//   } catch (error: any) {
+//     res.status(400).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+// export const getCourseDetails = async (
+//   req: Request,
+//   res: Response
+// ) => {
+//   try {
+//     const slug = req.params.slug as string;
+
+//     const course =
+//       await courseService.getCourseDetails(slug);
+
+//     res.status(200).json({
+//       success: true,
+//       data: course,
+//     });
+//   } catch (error: any) {
+//     res.status(404).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+import { Request, Response } from "express";
+import * as courseService from "./course.service";
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+    role: string;
+  };
+}
+
+/* ===========================
+   Create Course
+=========================== */
+
+export const createCourse = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const course = await courseService.createCourse({
+      ...req.body,
+
+      // Teacher creates course
+      // => automatically logged-in teacher assigned
+      teacherId:
+        req.user.role === "TEACHER"
+          ? req.user.id
+          : req.body.teacherId,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Course created successfully",
+      data: course,
+    });
+  } catch (error: any) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/* ===========================
+   Get All Courses
+=========================== */
+
 export const getAllCourses = async (
   req: Request,
   res: Response
 ) => {
-
   try {
-
     const result =
-      await courseService.getAllCourses(
-        req.query
-      );
+      await courseService.getAllCourses(req.query);
 
-    res.status(200).json({
-
+    return res.status(200).json({
       success: true,
-
       ...result,
-
     });
-
   } catch (error: any) {
-
-    res.status(500).json({
-
+    return res.status(500).json({
       success: false,
-
       message: error.message,
-
     });
-
   }
-
 };
+
+/* ===========================
+   Get Course By Slug
+=========================== */
+
 export const getCourseBySlug = async (
   req: Request,
   res: Response
@@ -77,63 +236,83 @@ export const getCourseBySlug = async (
   try {
     const slug = req.params.slug as string;
 
-    const course = await courseService.getCourseBySlug(slug);
+    const course =
+      await courseService.getCourseBySlug(slug);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: course,
     });
   } catch (error: any) {
-    res.status(404).json({
+    return res.status(404).json({
       success: false,
       message: error.message,
     });
   }
 };
 
+/* ===========================
+   Update Course
+=========================== */
+
 export const updateCourse = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response
 ) => {
   try {
     const id = req.params.id as string;
 
-    const course = await courseService.updateCourse(
-      id,
-      req.body
-    );
+    const course =
+      await courseService.updateCourse(
+        id,
+        req.body,
+        req.user.id,
+        req.user.role
+      );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Course updated successfully",
       data: course,
     });
   } catch (error: any) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
   }
 };
 
+/* ===========================
+   Delete Course
+=========================== */
+
 export const deleteCourse = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response
 ) => {
   try {
     const id = req.params.id as string;
 
-    const result = await courseService.deleteCourse(id);
+    const result =
+      await courseService.deleteCourse(
+        id,
+        req.user.id,
+        req.user.role
+      );
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error: any) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
   }
 };
 
+/* ===========================
+   Course Details
+=========================== */
 
 export const getCourseDetails = async (
   req: Request,
@@ -145,12 +324,12 @@ export const getCourseDetails = async (
     const course =
       await courseService.getCourseDetails(slug);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: course,
     });
   } catch (error: any) {
-    res.status(404).json({
+    return res.status(404).json({
       success: false,
       message: error.message,
     });

@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma";
-
+import { generateCertificatePDF } from "./certificate.pdf";
 interface GenerateCertificateInput {
   studentId: string;
   courseId: string;
@@ -166,5 +166,57 @@ export const verifyCertificate = async (
   }
 
   return certificate;
+
+};
+
+/* ===========================
+   Download Certificate
+=========================== */
+
+export const downloadCertificate = async (
+  certificateId: string
+) => {
+
+  const certificate =
+    await prisma.certificate.findUnique({
+
+      where: {
+        id: certificateId,
+      },
+
+      include: {
+        student: true,
+        course: true,
+      },
+
+    });
+
+  if (!certificate) {
+    throw new Error("Certificate not found");
+  }
+
+  // const pdf = generateCertificatePDF({
+
+  //   studentName: certificate.student.fullName,
+
+  //   courseName: certificate.course.title,
+
+  //   certificateNumber:
+  //     certificate.certificateNumber,
+
+  //   issueDate: certificate.issuedAt,
+
+  // });
+
+  const pdf = await generateCertificatePDF({
+  studentName: certificate.student.fullName,
+  courseName: certificate.course.title,
+  certificateNumber: certificate.certificateNumber,
+  issueDate: certificate.issuedAt,
+});
+  return {
+    pdf,
+    certificate,
+  };
 
 };

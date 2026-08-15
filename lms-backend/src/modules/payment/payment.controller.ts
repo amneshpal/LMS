@@ -141,7 +141,7 @@ export const approvePayment = async (
     const result =
       await paymentService.approvePayment(
 
-        req.params.id,
+        req.params.id as string,
 
         req.user.id
 
@@ -174,7 +174,7 @@ export const rejectPayment = async (
 
     const result =
       await paymentService.rejectPayment(
-        req.params.id
+        req.params.id as string
       );
 
     return res.json(result);

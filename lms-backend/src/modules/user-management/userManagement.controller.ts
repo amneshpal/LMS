@@ -47,7 +47,7 @@ export const getUserById = async (
 
     const user =
       await userManagementService.getUserById(
-        req.params.id
+        req.params.id as string
       );
 
     return res.status(200).json({
@@ -84,7 +84,7 @@ export const updateUserStatus = async (
     const user =
       await userManagementService.updateUserStatus(
 
-        req.params.id,
+        req.params.id as string,
 
         req.body.status
 
@@ -126,7 +126,7 @@ export const updateUserRole = async (
     const user =
       await userManagementService.updateUserRole(
 
-        req.params.id,
+        req.params.id as string,
 
         req.body.role
 
@@ -167,7 +167,7 @@ export const deleteUser = async (
 
     const result =
       await userManagementService.deleteUser(
-        req.params.id
+        req.params.id as string
       );
 
     return res.status(200).json(result);

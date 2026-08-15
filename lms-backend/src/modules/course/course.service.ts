@@ -7,39 +7,85 @@ interface CreateCourseInput {
   thumbnail?: string;
   price: number;
   categoryId: string;
+  teacherId?: string;
 }
 
-export const createCourse = async (data: CreateCourseInput) => {
+export const createCourse = async (
+  data: CreateCourseInput
+) => {
   // Check duplicate course
-  const existingCourse = await prisma.course.findFirst({
-    where: {
-      OR: [
-        { title: data.title },
-        { slug: data.slug }
-      ]
-    }
-  });
+  const existingCourse =
+    await prisma.course.findFirst({
+      where: {
+        OR: [
+          {
+            title: data.title,
+          },
+          {
+            slug: data.slug,
+          },
+        ],
+      },
+    });
 
   if (existingCourse) {
     throw new Error("Course already exists");
   }
 
-  // Check category exists
-  const category = await prisma.category.findUnique({
-    where: {
-      id: data.categoryId
-    }
-  });
+  // Check category
+  const category =
+    await prisma.category.findUnique({
+      where: {
+        id: data.categoryId,
+      },
+    });
 
   if (!category) {
     throw new Error("Category not found");
   }
 
-  return prisma.course.create({
-    data,
-    include: {
-      category: true
+  // Check teacher
+  if (data.teacherId) {
+    const teacher =
+      await prisma.user.findUnique({
+        where: {
+          id: data.teacherId,
+        },
+      });
+
+    if (!teacher) {
+      throw new Error("Teacher not found");
     }
+
+    if (teacher.role !== "TEACHER") {
+      throw new Error(
+        "Selected user is not a teacher"
+      );
+    }
+  }
+
+  return prisma.course.create({
+    data: {
+      title: data.title,
+      slug: data.slug,
+      description: data.description,
+      thumbnail: data.thumbnail,
+      price: data.price,
+      categoryId: data.categoryId,
+      teacherId: data.teacherId,
+    },
+
+    include: {
+      category: true,
+
+      teacher: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    },
   });
 };
 
@@ -294,45 +340,106 @@ export const getCourseBySlug = async (
 };
 export const updateCourse = async (
   id: string,
-  data: Partial<CreateCourseInput>
+  data: Partial<CreateCourseInput>,
+  userId: string,
+  userRole: string
 ) => {
-
-  const course = await prisma.course.findUnique({
-    where: { id }
-  });
+  const course =
+    await prisma.course.findUnique({
+      where: {
+        id,
+      },
+    });
 
   if (!course) {
     throw new Error("Course not found");
+  }
+
+  // Teacher can update only own course
+  if (
+    userRole === "TEACHER" &&
+    course.teacherId !== userId
+  ) {
+    throw new Error(
+      "You can only update your own course"
+    );
+  }
+
+  // If teacherId is being changed
+  if (data.teacherId) {
+    const teacher =
+      await prisma.user.findUnique({
+        where: {
+          id: data.teacherId,
+        },
+      });
+
+    if (!teacher) {
+      throw new Error("Teacher not found");
+    }
+
+    if (teacher.role !== "TEACHER") {
+      throw new Error(
+        "Selected user is not a teacher"
+      );
+    }
   }
 
   return prisma.course.update({
-    where: { id },
+    where: {
+      id,
+    },
+
     data,
+
     include: {
-      category: true
-    }
+      category: true,
+
+      teacher: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    },
   });
 };
-
-export const deleteCourse = async (id: string) => {
-
-
-  
-  const course = await prisma.course.findUnique({
-    where: { id }
-  });
+export const deleteCourse = async (
+  id: string,
+  userId: string,
+  userRole: string
+) => {
+  const course =
+    await prisma.course.findUnique({
+      where: {
+        id,
+      },
+    });
 
   if (!course) {
     throw new Error("Course not found");
   }
 
+  // Teacher can delete only own course
+  if (
+    userRole === "TEACHER" &&
+    course.teacherId !== userId
+  ) {
+    throw new Error(
+      "You can only delete your own course"
+    );
+  }
+
   await prisma.course.delete({
-    where: { id }
+    where: {
+      id,
+    },
   });
 
   return {
     success: true,
-    message: "Course deleted successfully"
+    message: "Course deleted successfully",
   };
 };
 

@@ -39,4 +39,18 @@ router.get(
   certificateController.verifyCertificate as unknown as RequestHandler
 );
 
+
+router.get(
+  "/:id/download",
+  authenticate,
+  authorize("STUDENT"),
+  certificateController.downloadCertificate as unknown as RequestHandler
+);
+
+router.get(
+  "/:id/download",
+  authenticate,
+  authorize("STUDENT"),
+  certificateController.downloadCertificate as unknown as RequestHandler
+);
 export default router;
