@@ -91,7 +91,7 @@ import certificateRoutes from "./modules/certificate/certificate.routes";
 import assignmentRoutes from "./modules/assignment/assignment.routes";
 import adminDashboardRoutes from "./modules/admin-dashboard/adminDashboard.routes";
 import teacherDashboardRoutes from "./modules/teacher-dashboard/teacherDashboard.routes";
-
+import lessonProgressRoutes from "./modules/lesson-progress/lesson-progress.routes";
 
 
 
@@ -136,7 +136,10 @@ app.use("/api/v1/admin", userManagementRoutes);
 app.use("/api/v1/certificates", certificateRoutes);
 app.use("/api/v1/assignments", assignmentRoutes); 
 
-
+app.use(
+  "/api/v1/lesson-progress",
+  lessonProgressRoutes
+);
 
 app.use(
   "/api/v1/admin/dashboard",
