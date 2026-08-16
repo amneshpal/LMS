@@ -1,4 +1,8 @@
-import { Router, RequestHandler } from "express";
+import {
+  Router,
+  RequestHandler,
+} from "express";
+
 import * as enrollmentController from "./enrollment.controller";
 
 import { authenticate } from "../../middlewares/auth.middleware";
@@ -6,31 +10,31 @@ import { authorize } from "../../middlewares/role.middleware";
 
 const router = Router();
 
-/*
-Admin enroll student
-*/
+// =========================
+// Student Enrollment
+// =========================
 
 router.post(
   "/",
   authenticate,
-  authorize("ADMIN"),
-  enrollmentController.enrollStudent
+  authorize("STUDENT"),
+  enrollmentController.enrollStudent as unknown as RequestHandler
 );
 
-/*
-Admin
-*/
+// =========================
+// Admin - All Enrollments
+// =========================
 
 router.get(
   "/",
   authenticate,
   authorize("ADMIN"),
-  enrollmentController.getAllEnrollments
+  enrollmentController.getAllEnrollments as unknown as RequestHandler
 );
 
-/*
-Student
-*/
+// =========================
+// Student - My Courses
+// =========================
 
 router.get(
   "/my-courses",
@@ -39,15 +43,15 @@ router.get(
   enrollmentController.getMyCourses as unknown as RequestHandler
 );
 
-/*
-Admin
-*/
+// =========================
+// Admin - Delete
+// =========================
 
 router.delete(
   "/:id",
   authenticate,
   authorize("ADMIN"),
-  enrollmentController.deleteEnrollment
+  enrollmentController.deleteEnrollment as unknown as RequestHandler
 );
 
 export default router;

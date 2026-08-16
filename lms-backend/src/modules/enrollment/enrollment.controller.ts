@@ -1,20 +1,32 @@
 import { Request, Response } from "express";
 import * as enrollmentService from "./enrollment.service";
+import { AuthRequest } from "../../middlewares/auth.middleware";
 
 export const enrollStudent = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   try {
-    const enrollment = await enrollmentService.enrollStudent(req.body);
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
 
-    res.status(201).json({
+    const enrollment =
+      await enrollmentService.enrollStudent({
+        studentId: req.user.id,
+        courseId: req.body.courseId,
+      });
+
+    return res.status(201).json({
       success: true,
       message: "Student enrolled successfully",
       data: enrollment,
     });
   } catch (error: any) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
@@ -29,12 +41,12 @@ export const getAllEnrollments = async (
     const enrollments =
       await enrollmentService.getAllEnrollments();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: enrollments,
     });
   } catch (error: any) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -42,21 +54,28 @@ export const getAllEnrollments = async (
 };
 
 export const getMyCourses = async (
-  req: Request & { user: { id: string } },
+  req: AuthRequest,
   res: Response
 ) => {
   try {
-    const studentId = req.user.id;
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
 
     const courses =
-      await enrollmentService.getStudentCourses(studentId);
+      await enrollmentService.getStudentCourses(
+        req.user.id
+      );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: courses,
     });
   } catch (error: any) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -73,9 +92,12 @@ export const deleteEnrollment = async (
     const result =
       await enrollmentService.deleteEnrollment(id);
 
-    res.status(200).json(result);
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
   } catch (error: any) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
